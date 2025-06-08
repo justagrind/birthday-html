@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Smooth Two-Sided Flipbook</title>
+  <title>Enhanced Flipbook with Confetti & Sound</title>
   <style>
+    /* ... (Keep all previous CSS from above here, unchanged) ... */
     * {
       box-sizing: border-box;
       user-select: none;
     }
-
     body {
       margin: 0;
       height: 100vh;
@@ -18,13 +18,16 @@
       align-items: center;
       background: #ddd8d1;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
     }
 
     .flipbook-container {
       perspective: 2200px;
-      width: 820px;
-      height: 300px;
+      width: 860px;
+      height: 350px;
       position: relative;
+      user-select: none;
+      touch-action: pan-y;
     }
 
     .book {
@@ -32,86 +35,68 @@
       height: 100%;
       position: relative;
       transform-style: preserve-3d;
-      border: 1.5px solid #ccc;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #fefcf7, #e7e2d8);
       box-shadow:
-        0 15px 30px rgba(0,0,0,0.2),
-        inset 0 0 15px rgba(255,255,255,0.6);
-      background: linear-gradient(135deg, #fdf6e3, #f4ecd8);
-      border-radius: 5px;
-      overflow: visible;
+        inset 0 15px 20px #f9f8f6,
+        inset 0 -10px 10px #bbb6a7,
+        0 12px 35px rgba(0, 0, 0, 0.2);
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0px;
+      gap: 0;
+      z-index: 10;
     }
 
     .page {
-      width: 400px;
+      width: 420px;
       height: 100%;
-      background: white;
+      background: linear-gradient(90deg, #fff 0%, #fcfcfa 20%, #f7f7f2 100%);
+      border-radius: 6px;
       box-shadow:
-        0 0 15px rgba(0,0,0,0.1),
-        inset 0 0 10px rgba(0,0,0,0.05);
-      border-radius: 4px;
+        0 2px 5px rgba(0,0,0,0.15),
+        inset 0 0 25px rgba(255,255,255,0.9);
       overflow: hidden;
       position: relative;
       transform-style: preserve-3d;
-      transition: box-shadow 0.8s;
-      background-image: repeating-linear-gradient(0deg, #fff, #fff 3px, #f5f5f5 4px);
-      background-size: 100% 6px;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 35px 30px;
+      font-size: 1.15rem;
+      line-height: 1.5;
+      color: #222;
+      text-align: center;
       box-sizing: border-box;
       backface-visibility: hidden;
+      cursor: grab;
+      user-select: none;
+      z-index: 1;
     }
 
     .page.left {
       transform-origin: right center;
+      margin-right: -5px;
       box-shadow:
-        0 0 15px rgba(0,0,0,0.15),
-        inset 0 0 15px rgba(255,255,255,0.6);
-      margin-right: -2px;
+        0 0 0 1px #ddd,
+        1.5px 0 0 1px #ccc,
+        3px 0 0 1px #bbb,
+        4.5px 0 5px rgba(0,0,0,0.07),
+        inset 0 0 15px rgba(255,255,255,0.8);
       z-index: 3;
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .page.right {
       transform-origin: left center;
+      margin-left: -5px;
       box-shadow:
-        0 0 15px rgba(0,0,0,0.15),
-        inset 0 0 15px rgba(255,255,255,0.6);
-      margin-left: -2px;
+        0 0 0 1px #ddd,
+        -1.5px 0 0 1px #ccc,
+        -3px 0 0 1px #bbb,
+        -4.5px 0 5px rgba(0,0,0,0.07),
+        inset 0 0 15px rgba(255,255,255,0.8);
       z-index: 4;
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .page.left::before,
-    .page.right::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 10px;
-      background: linear-gradient(90deg, #ddd 0%, #fff 100%);
-      box-shadow: 0 0 8px rgba(0,0,0,0.05);
-      z-index: -1;
-      border-radius: 0 5px 5px 0;
-    }
-
-    .page.right::before {
-      left: -10px;
-      border-radius: 5px 0 0 5px;
-      background: linear-gradient(270deg, #ddd 0%, #fff 100%);
-    }
-
-    .page.left::before {
-      right: -10px;
-    }
-
-    .page.right.flipped {
-      transform: rotateY(-180deg);
-      box-shadow:
-        -5px 0 15px rgba(0,0,0,0.3),
-        inset 0 0 10px rgba(0,0,0,0.2);
-      z-index: 1 !important;
     }
 
     .page.left.flipped {
@@ -120,47 +105,42 @@
         5px 0 15px rgba(0,0,0,0.3),
         inset 0 0 10px rgba(0,0,0,0.2);
       z-index: 1 !important;
+      cursor: grab;
     }
 
-    .page-content {
-      padding: 30px 25px;
-      font-size: 1.2rem;
-      line-height: 1.5;
-      color: #333;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      text-align: center;
-      backface-visibility: hidden;
+    .page.right.flipped {
+      transform: rotateY(-180deg);
+      box-shadow:
+        -5px 0 15px rgba(0,0,0,0.3),
+        inset 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1 !important;
+      cursor: grab;
     }
 
-    .page .backface {
+    .page-number {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #f9f9f9;
-      color: #555;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-style: italic;
-      transform: rotateY(180deg);
-      border-radius: 4px;
-      backface-visibility: hidden;
-      padding: 20px;
+      bottom: 15px;
+      right: 25px;
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: 600;
+      user-select: none;
+      font-family: monospace;
     }
 
     .controls {
       margin-top: 20px;
       text-align: center;
-      width: 820px;
+      width: 860px;
       user-select: none;
+      z-index: 20;
+      position: relative;
     }
 
     button {
       background-color: #6a8a9f;
       border: none;
-      padding: 10px 20px;
+      padding: 12px 26px;
       margin: 0 15px;
       color: white;
       font-size: 1rem;
@@ -168,6 +148,8 @@
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       transition: background-color 0.3s ease;
+      font-weight: 600;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     button:hover:not(:disabled) {
@@ -180,30 +162,61 @@
       box-shadow: none;
     }
 
-    .page-number {
-      position: absolute;
-      bottom: 10px;
-      right: 15px;
-      font-size: 0.9rem;
-      color: #777;
-      font-weight: 600;
-      user-select: none;
+    #pagesContentContainer {
+      display: none;
+    }
+
+    .rich-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #222;
+    }
+
+    .rich-content img {
+      max-width: 100%;
+      max-height: 160px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      object-fit: contain;
+    }
+
+    .rich-content h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #3a3a3a;
+    }
+
+    .rich-content p {
+      margin: 0;
+      font-size: 1rem;
+      color: #444;
+    }
+
+    /* Confetti canvas */
+    #confettiCanvas {
+      position: fixed;
+      pointer-events: none;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
 
-  <div class="flipbook-container">
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="flipbook-container" id="flipbookContainer">
     <div class="book" id="book">
-      <!-- We'll keep leftPage and rightPage always in DOM -->
       <div class="page left" id="leftPage">
-        <div class="page-content front"></div>
-        <div class="backface"></div>
         <div class="page-number"></div>
       </div>
       <div class="page right" id="rightPage">
-        <div class="page-content front"></div>
-        <div class="backface"></div>
         <div class="page-number"></div>
       </div>
     </div>
@@ -213,87 +226,129 @@
     </div>
   </div>
 
-  <script>
-    const pagesData = [
-      "Page 1: Welcome to the flipbook!",
-      "Page 2: This is the right page content.",
-      "Page 3: Another left page here.",
-      "Page 4: Right page again with cool stuff.",
-      "Page 5: Left page - almost there!",
-      "Page 6: Last right page, thanks for reading."
-    ];
+  <div id="pagesContentContainer">
+    <div class="page-content" data-page="1">
+      <div class="rich-content">
+        <h2>Welcome to the Flipbook!</h2>
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Welcome Image" />
+        <p>Enjoy flipping through pages with smooth animations and shadows.</p>
+      </div>
+    </div>
+    <div class="page-content" data-page="2">
+      <div class="rich-content">
+        <h2>Beautiful Scenery</h2>
+        <img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=600&q=80" alt="Scenery" />
+        <p>This page shows a beautiful view of nature.</p>
+      </div>
+    </div>
+    <div class="page-content" data-page="3">
+      <div class="rich-content">
+        <h2>Inspirational Quote</h2>
+        <p><em>"The journey of a thousand miles begins with one step."</em></p>
+        <p>- Lao Tzu</p>
+      </div>
+    </div>
+    <div class="page-content" data-page="4">
+      <div class="rich-content">
+        <h2>More Fun Content</h2>
+        <img src="https://images.unsplash.com/photo-1511765224389-37f0e77cf0eb?auto=format&fit=crop&w=600&q=80" alt="Fun" />
+        <p>Adding pictures and text is easy to do!</p>
+      </div>
+    </div>
+    <div class="page-content" data-page="5">
+      <div class="rich-content">
+        <h2>Thank You!</h2>
+        <p>Thanks for flipping through this demo flipbook. You can add many more pages as you like.</p>
+      </div>
+    </div>
+  </div>
 
+  <audio id="flipSound" src="https://freesound.org/data/previews/220/220173_4107760-lq.mp3" preload="auto"></audio>
+
+  <script>
     const leftPage = document.getElementById('leftPage');
     const rightPage = document.getElementById('rightPage');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const pagesContentContainer = document.getElementById('pagesContentContainer');
+    const flipbookContainer = document.getElementById('flipbookContainer');
+    const flipSound = document.getElementById('flipSound');
+
+    const pages = [...pagesContentContainer.querySelectorAll('.page-content')]
+      .sort((a, b) => parseInt(a.dataset.page) - parseInt(b.dataset.page));
 
     let currentSpread = 0;
-    const totalSpreads = pagesData.length / 2;
+    const totalSpreads = Math.ceil(pages.length / 2);
 
-    // Helper to update page content
-    function setPageContent(pageEl, content, pageNum) {
-      pageEl.querySelector('.page-content.front').textContent = content;
-      pageEl.querySelector('.backface').textContent = `Back of Page ${pageNum}`;
-      pageEl.querySelector('.page-number').textContent = `Page ${pageNum}`;
+    function setPageContent(pageEl, pageIndex) {
+      pageEl.querySelectorAll(':not(.page-number)').forEach(n => n.remove());
+
+      if (pageIndex < 0 || pageIndex >= pages.length) {
+        pageEl.style.visibility = "hidden";
+        pageEl.querySelector('.page-number').textContent = '';
+        return;
+      }
+      pageEl.style.visibility = "visible";
+
+      const content = pages[pageIndex].cloneNode(true);
+      content.style.display = 'block';
+      content.removeAttribute('data-page');
+      content.classList.remove('page-content');
+      content.style.margin = 0;
+
+      pageEl.appendChild(content);
+      pageEl.querySelector('.page-number').textContent = `Page ${pageIndex + 1}`;
     }
 
-    // Initialize pages
     function initPages() {
-      setPageContent(leftPage, pagesData[0], 1);
-      setPageContent(rightPage, pagesData[1], 2);
+      setPageContent(leftPage, 0);
+      setPageContent(rightPage, 1);
       leftPage.classList.remove('flipped');
       rightPage.classList.remove('flipped');
       updateButtons();
     }
 
-    // Update buttons state
     function updateButtons() {
       prevBtn.disabled = currentSpread === 0;
-      nextBtn.disabled = currentSpread === totalSpreads - 1;
+      nextBtn.disabled = currentSpread >= totalSpreads - 1;
     }
 
-    // Flip right page forward (next)
+    function playFlipSound() {
+      flipSound.currentTime = 0;
+      flipSound.play();
+    }
+
     function next() {
       if (currentSpread >= totalSpreads - 1) return;
 
-      // Flip right page
+      playFlipSound();
       rightPage.classList.add('flipped');
 
-      // After animation, update content & reset flip
       rightPage.addEventListener('transitionend', function handler(e) {
         if (e.propertyName !== 'transform') return;
 
         rightPage.classList.remove('flipped');
         currentSpread++;
-        const leftIdx = currentSpread * 2;
-        const rightIdx = leftIdx + 1;
-
-        setPageContent(leftPage, pagesData[leftIdx] || '', leftIdx + 1);
-        setPageContent(rightPage, pagesData[rightIdx] || '', rightIdx + 1);
+        setPageContent(leftPage, currentSpread * 2);
+        setPageContent(rightPage, currentSpread * 2 + 1);
 
         updateButtons();
         rightPage.removeEventListener('transitionend', handler);
       });
     }
 
-    // Flip left page backward (prev)
     function prev() {
       if (currentSpread <= 0) return;
 
-      // Flip left page backward (add flipped first)
+      playFlipSound();
       leftPage.classList.add('flipped');
 
-      // After animation, update content & unflip
       leftPage.addEventListener('transitionend', function handler(e) {
         if (e.propertyName !== 'transform') return;
 
         currentSpread--;
-        const leftIdx = currentSpread * 2;
-        const rightIdx = leftIdx + 1;
-
-        setPageContent(leftPage, pagesData[leftIdx] || '', leftIdx + 1);
-        setPageContent(rightPage, pagesData[rightIdx] || '', rightIdx + 1);
+        setPageContent(leftPage, currentSpread * 2);
+        setPageContent(rightPage, currentSpread * 2 + 1);
 
         leftPage.classList.remove('flipped');
         updateButtons();
@@ -305,7 +360,114 @@
     prevBtn.addEventListener('click', prev);
     nextBtn.addEventListener('click', next);
 
+    // Swipe support
+    let startX = 0;
+    let isDragging = false;
+    const swipeThreshold = 50;
+
+    flipbookContainer.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+      }
+    });
+
+    flipbookContainer.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const deltaX = e.touches[0].clientX - startX;
+      if (Math.abs(deltaX) > 10) e.preventDefault();
+    }, { passive: false });
+
+    flipbookContainer.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      const endX = e.changedTouches[0].clientX;
+      const deltaX = endX - startX;
+
+      if (deltaX > swipeThreshold) {
+        prev();
+      } else if (deltaX < -swipeThreshold) {
+        next();
+      }
+      isDragging = false;
+    });
+
     initPages();
+
+    // --------- Confetti Implementation ---------
+
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    const ctx = confettiCanvas.getContext('2d');
+    let W, H;
+    function resizeCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      confettiCanvas.width = W;
+      confettiCanvas.height = H;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class ConfettiParticle {
+      constructor() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H - H;
+        this.r = (Math.random() * 6) + 4;
+        this.d = (Math.random() * 20) + 10;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        this.tilt = Math.floor(Math.random() * 10) - 10;
+        this.tiltAngleIncrement = (Math.random() * 0.07) + 0.05;
+        this.tiltAngle = 0;
+        this.speed = (Math.random() * 3) + 2;
+      }
+      update() {
+        this.y += this.speed;
+        this.tiltAngle += this.tiltAngleIncrement;
+        this.tilt = Math.sin(this.tiltAngle) * 12;
+
+        if (this.y > H) {
+          this.x = Math.random() * W;
+          this.y = -20;
+          this.tilt = Math.floor(Math.random() * 10) - 10;
+        }
+      }
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.lineWidth = this.r / 2;
+        ctx.strokeStyle = this.color;
+        ctx.moveTo(this.x + this.tilt + this.r / 4, this.y);
+        ctx.lineTo(this.x + this.tilt, this.y + this.tilt + this.r / 4);
+        ctx.stroke();
+      }
+    }
+
+    const confettiCount = 120;
+    const confettiParticles = [];
+
+    for (let i = 0; i < confettiCount; i++) {
+      confettiParticles.push(new ConfettiParticle());
+    }
+
+    let confettiRunning = true;
+
+    function runConfetti() {
+      if (!confettiRunning) return;
+      ctx.clearRect(0, 0, W, H);
+      for (const p of confettiParticles) {
+        p.update();
+        p.draw(ctx);
+      }
+      requestAnimationFrame(runConfetti);
+    }
+
+    // Start confetti on page load and stop after 5 seconds
+    window.addEventListener('load', () => {
+      runConfetti();
+      setTimeout(() => {
+        confettiRunning = false;
+        ctx.clearRect(0, 0, W, H);
+      }, 5000);
+    });
+
   </script>
 
 </body>
