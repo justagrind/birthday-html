@@ -2,105 +2,310 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Animated Birthday Card</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smooth Two-Sided Flipbook</title>
   <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
     body {
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #ffe6f0, #fceabb);
-      font-family: 'Arial', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
-    }
-
-    .card-container {
-      perspective: 1000px;
-    }
-
-    .card {
-      width: 350px;
-      height: 220px;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .card-inner {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transition: transform 0.8s;
-      transform-style: preserve-3d;
-    }
-
-    .card.flipped .card-inner {
-      transform: rotateY(180deg);
-    }
-
-    .card-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      background: #fff0f5;
-      border: 3px solid #ff7eb9;
-      border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
-      font-size: 20px;
-      box-sizing: border-box;
+      background: #ddd8d1;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .card-face.back {
+    .flipbook-container {
+      perspective: 2200px;
+      width: 820px;
+      height: 300px;
+      position: relative;
+    }
+
+    .book {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      border: 1.5px solid #ccc;
+      box-shadow:
+        0 15px 30px rgba(0,0,0,0.2),
+        inset 0 0 15px rgba(255,255,255,0.6);
+      background: linear-gradient(135deg, #fdf6e3, #f4ecd8);
+      border-radius: 5px;
+      overflow: visible;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0px;
+    }
+
+    .page {
+      width: 400px;
+      height: 100%;
+      background: white;
+      box-shadow:
+        0 0 15px rgba(0,0,0,0.1),
+        inset 0 0 10px rgba(0,0,0,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: box-shadow 0.8s;
+      background-image: repeating-linear-gradient(0deg, #fff, #fff 3px, #f5f5f5 4px);
+      background-size: 100% 6px;
+      box-sizing: border-box;
+      backface-visibility: hidden;
+    }
+
+    .page.left {
+      transform-origin: right center;
+      box-shadow:
+        0 0 15px rgba(0,0,0,0.15),
+        inset 0 0 15px rgba(255,255,255,0.6);
+      margin-right: -2px;
+      z-index: 3;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .page.right {
+      transform-origin: left center;
+      box-shadow:
+        0 0 15px rgba(0,0,0,0.15),
+        inset 0 0 15px rgba(255,255,255,0.6);
+      margin-left: -2px;
+      z-index: 4;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .page.left::before,
+    .page.right::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 10px;
+      background: linear-gradient(90deg, #ddd 0%, #fff 100%);
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+      z-index: -1;
+      border-radius: 0 5px 5px 0;
+    }
+
+    .page.right::before {
+      left: -10px;
+      border-radius: 5px 0 0 5px;
+      background: linear-gradient(270deg, #ddd 0%, #fff 100%);
+    }
+
+    .page.left::before {
+      right: -10px;
+    }
+
+    .page.right.flipped {
+      transform: rotateY(-180deg);
+      box-shadow:
+        -5px 0 15px rgba(0,0,0,0.3),
+        inset 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1 !important;
+    }
+
+    .page.left.flipped {
       transform: rotateY(180deg);
+      box-shadow:
+        5px 0 15px rgba(0,0,0,0.3),
+        inset 0 0 10px rgba(0,0,0,0.2);
+      z-index: 1 !important;
+    }
+
+    .page-content {
+      padding: 30px 25px;
+      font-size: 1.2rem;
+      line-height: 1.5;
+      color: #333;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      backface-visibility: hidden;
+    }
+
+    .page .backface {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #f9f9f9;
+      color: #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-style: italic;
+      transform: rotateY(180deg);
+      border-radius: 4px;
+      backface-visibility: hidden;
+      padding: 20px;
+    }
+
+    .controls {
+      margin-top: 20px;
+      text-align: center;
+      width: 820px;
+      user-select: none;
+    }
+
+    button {
+      background-color: #6a8a9f;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 15px;
+      color: white;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #4f6a7a;
+    }
+
+    button:disabled {
+      background-color: #b0b0b0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .page-number {
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      font-size: 0.9rem;
+      color: #777;
+      font-weight: 600;
+      user-select: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="card-container">
-    <div class="card" id="card">
-      <div class="card-inner">
-        <div class="card-face front" id="front">🎉 Click to open your birthday card!</div>
-        <div class="card-face back" id="back">🎂 Here's the next step!</div>
+  <div class="flipbook-container">
+    <div class="book" id="book">
+      <!-- We'll keep leftPage and rightPage always in DOM -->
+      <div class="page left" id="leftPage">
+        <div class="page-content front"></div>
+        <div class="backface"></div>
+        <div class="page-number"></div>
       </div>
+      <div class="page right" id="rightPage">
+        <div class="page-content front"></div>
+        <div class="backface"></div>
+        <div class="page-number"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="prevBtn" disabled>Previous</button>
+      <button id="nextBtn">Next</button>
     </div>
   </div>
 
   <script>
-    const steps = [
-      "🎉 Click to open your birthday card!",
-      "🎂 Here's the next step!",
-      "🎁 Ready for the gift?",
-      "🎈 Final step! Have a great day!"
+    const pagesData = [
+      "Page 1: Welcome to the flipbook!",
+      "Page 2: This is the right page content.",
+      "Page 3: Another left page here.",
+      "Page 4: Right page again with cool stuff.",
+      "Page 5: Left page - almost there!",
+      "Page 6: Last right page, thanks for reading."
     ];
 
-    let currentStep = 0;
-    const card = document.getElementById("card");
-    const front = document.getElementById("front");
-    const back = document.getElementById("back");
+    const leftPage = document.getElementById('leftPage');
+    const rightPage = document.getElementById('rightPage');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-    function updateCard() {
-      front.textContent = steps[currentStep];
-      back.textContent = steps[(currentStep + 1) % steps.length];
+    let currentSpread = 0;
+    const totalSpreads = pagesData.length / 2;
+
+    // Helper to update page content
+    function setPageContent(pageEl, content, pageNum) {
+      pageEl.querySelector('.page-content.front').textContent = content;
+      pageEl.querySelector('.backface').textContent = `Back of Page ${pageNum}`;
+      pageEl.querySelector('.page-number').textContent = `Page ${pageNum}`;
     }
 
-    card.addEventListener("click", () => {
-      card.classList.add("flipped");
+    // Initialize pages
+    function initPages() {
+      setPageContent(leftPage, pagesData[0], 1);
+      setPageContent(rightPage, pagesData[1], 2);
+      leftPage.classList.remove('flipped');
+      rightPage.classList.remove('flipped');
+      updateButtons();
+    }
 
-      setTimeout(() => {
-        currentStep = (currentStep + 1) % steps.length;
-        updateCard();
-        card.classList.remove("flipped");
-      }, 800); // Match CSS transition duration
-    });
+    // Update buttons state
+    function updateButtons() {
+      prevBtn.disabled = currentSpread === 0;
+      nextBtn.disabled = currentSpread === totalSpreads - 1;
+    }
 
-    updateCard();
+    // Flip right page forward (next)
+    function next() {
+      if (currentSpread >= totalSpreads - 1) return;
+
+      // Flip right page
+      rightPage.classList.add('flipped');
+
+      // After animation, update content & reset flip
+      rightPage.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== 'transform') return;
+
+        rightPage.classList.remove('flipped');
+        currentSpread++;
+        const leftIdx = currentSpread * 2;
+        const rightIdx = leftIdx + 1;
+
+        setPageContent(leftPage, pagesData[leftIdx] || '', leftIdx + 1);
+        setPageContent(rightPage, pagesData[rightIdx] || '', rightIdx + 1);
+
+        updateButtons();
+        rightPage.removeEventListener('transitionend', handler);
+      });
+    }
+
+    // Flip left page backward (prev)
+    function prev() {
+      if (currentSpread <= 0) return;
+
+      // Flip left page backward (add flipped first)
+      leftPage.classList.add('flipped');
+
+      // After animation, update content & unflip
+      leftPage.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName !== 'transform') return;
+
+        currentSpread--;
+        const leftIdx = currentSpread * 2;
+        const rightIdx = leftIdx + 1;
+
+        setPageContent(leftPage, pagesData[leftIdx] || '', leftIdx + 1);
+        setPageContent(rightPage, pagesData[rightIdx] || '', rightIdx + 1);
+
+        leftPage.classList.remove('flipped');
+        updateButtons();
+
+        leftPage.removeEventListener('transitionend', handler);
+      });
+    }
+
+    prevBtn.addEventListener('click', prev);
+    nextBtn.addEventListener('click', next);
+
+    initPages();
   </script>
 
 </body>
